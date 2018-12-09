@@ -5,6 +5,8 @@ import smtplib
 from email.mime.text import MIMEText
 from flask import *
 import sys
+import telegram_send as tg
+
 
 
 
@@ -86,7 +88,7 @@ class ControladorBanco():
 			)
 			self.cursor = self.con.cursor()
 		except Exception as e:
-			print ("Nao foi possivel acessar o banco de dados. ")
+			print ("Nao foi possivel acessar o banco de dados. Erro: ")
 			print (e)
 	def fechaConexao(self):
 		self.cursor.close()
@@ -129,7 +131,7 @@ Funcoes utilitarias
 '''
 def sendEmail():
 	user = 'gabrieljsssss@gmail.com'
-	pwd = 'Ga92051831'
+	pwd = '' #cuidado para nao esquecer a senha aqui
 	recipient = 'gabrieljsss@poli.ufrj.br'
 	subject = 'Alerta'
 	body = "ALERTA DE INCENDIO. POR FAVOR AGIR RAPIDO E ENTRAR EM CONTATO COM AS AUTORIDADES. ESSA MENSAGEM NAO E UM TREINAMENTO. "
@@ -151,6 +153,15 @@ def sendEmail():
 	except:
 		print("Falha ao enviar email")
 
+def sendTelegram():
+	user = 'Lucas'
+	subject = 'Alerta'
+	body = "Alerta de incêndio!"
+	FROM = user
+	SUBJECT = subject
+	TEXT = body
+    msg = 'Alerte as autoridades'
+	tg.send(messages = [msg])
 
 def run(dbm, cs):
 	temperatura = cs.readTemp()
@@ -160,7 +171,6 @@ def run(dbm, cs):
 	print ("Niveis de gases: %s") % (gas)
 	dbm.sendLeituras(temperatura, gas)
 
-	#fazer assim ou ficar calculando a tangente o tempo todo?
 	if int(temperatura) > 50 or int(gas) > 100:
 		sendEmail()
 
@@ -172,6 +182,7 @@ def normalizeFile(data):
 		data[c] = int(i.strip("\n"))
 		c+=1
 	return data	
+
 def sendLogFilesToDB():
     dbm = ControladorBanco("localhost", "root", "", "sensor")
     file = open("log/log-gas-3.txt", "r")
@@ -188,7 +199,6 @@ def sendLogFilesToDB():
 
 
 if __name__ == "__main__": 
-	sendEmail()
 	control = ControladorSensores()
 	dbm = ControladorBanco("localhost", "root", "", "sensor")
 	while True:
